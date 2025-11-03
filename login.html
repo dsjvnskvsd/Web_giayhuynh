@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập - HaiAnh Shop</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        function handleLogin(event) {
+            event.preventDefault(); // Ngăn form submit mặc định
+
+            // Lấy giá trị từ form
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                // Lấy danh sách tài khoản từ localStorage
+                let users = JSON.parse(localStorage.getItem("users")) || [];
+
+                // Tạo tài khoản admin mặc định nếu chưa có
+                const adminExists = users.find(user => user.username === "admin");
+                if (!adminExists) {
+                    users.push({ username: "admin", password: "admin@2025", role: "admin" });
+                    localStorage.setItem("users", JSON.stringify(users));
+                    console.log("Tài khoản admin đã được tạo: admin/admin@2025");
+                }
+
+                // Kiểm tra tài khoản
+                const user = users.find(user => user.username === username && user.password === password);
+                if (user) {
+                    // Lưu thông tin người dùng đã đăng nhập
+                    localStorage.setItem("currentUser", JSON.stringify(user));
+
+                    // Chuyển hướng theo vai trò
+                    if (user.role === "admin") {
+                        window.location.href = "admin.html";
+                    } else {
+                        window.location.href = "index.html";
+                    }
+                } else {
+                    // Nếu sai tài khoản/mật khẩu, hiển thị thông báo
+                    alert("Tài khoản hoặc mật khẩu không đúng. Vui lòng thử lại!");
+                }
+            } catch (error) {
+                // Nếu có lỗi khi truy xuất localStorage, thông báo và xóa dữ liệu hỏng
+                console.error("Lỗi khi truy xuất localStorage:", error);
+                alert("Dữ liệu tài khoản bị lỗi. Đang xóa dữ liệu và tạo lại tài khoản admin...");
+                localStorage.removeItem("users");
+                localStorage.removeItem("currentUser");
+                // Tạo lại tài khoản admin
+                let users = [];
+                users.push({ username: "admin", password: "admin@2025", role: "admin" });
+                localStorage.setItem("users", JSON.stringify(users));
+                alert("Đã tạo lại tài khoản admin. Vui lòng thử đăng nhập lại với: admin/admin@2025");
+            }
+        }
+
+        // Hàm kiểm tra tài khoản trong localStorage
+        function checkAccounts() {
+            try {
+                const users = JSON.parse(localStorage.getItem("users")) || [];
+                if (users.length === 0) {
+                    alert("Chưa có tài khoản nào trong localStorage. Đang tạo tài khoản admin...");
+                    let newUsers = [];
+                    newUsers.push({ username: "admin", password: "admin@2025", role: "admin" });
+                    localStorage.setItem("users", JSON.stringify(newUsers));
+                    alert("Đã tạo tài khoản admin: admin/admin@2025");
+                } else {
+                    let message = "Danh sách tài khoản trong localStorage:\n";
+                    users.forEach(user => {
+                        message += `- Tên: ${user.username}, Mật khẩu: ${user.password}, Vai trò: ${user.role}\n`;
+                    });
+                    alert(message);
+                }
+            } catch (error) {
+                alert("Lỗi khi truy xuất localStorage: " + error.message + "\nĐang xóa dữ liệu và tạo lại tài khoản admin...");
+                localStorage.removeItem("users");
+                localStorage.removeItem("currentUser");
+                let users = [];
+                users.push({ username: "admin", password: "admin@2025", role: "admin" });
+                localStorage.setItem("users", JSON.stringify(users));
+                alert("Đã tạo lại tài khoản admin: admin/admin@2025");
+            }
+        }
+    </script>
+</head>
+<body>
+    <!-- Header (Giữ nguyên) -->
+    <div class="header">
+        <div class="logo"><a href="index.html">HaiAnh Shop</a></div>
+        <div class="nav-menu">
+            <div class="dropdown">
+                <a href="#" class="dropdown-button">Danh mục</a>
+                <div class="dropdown-content">
+                    <a href="#">Điện thoại</a>
+                    <a href="index.html">Laptop</a>
+                    <a href="#">Điện máy</a>
+                    <a href="#">Phụ kiện</a>
+                    <a href="#">Chuyên trang Apple</a>
+                    <a href="#">Chuyên trang Samsung</a>
+                    <a href="#">Chuyên trang Xiaomi</a>
+                    <a href="#">Tivi, Tủ lạnh, Máy lạnh - Điện hộ</a>
+                    <a href="#">Máy giặt, Máy sấy, Tủ sấy</a>
+                    <a href="#">PC, Máy in, Đồng hồ, Máy tính bảng</a>
+                    <a href="#">Quạt, Quạt điều hòa, Máy lọc không khí</a>
+                    <a href="#">Robot hút bụi, Máy hút bụi, Máy lọc Khí</a>
+                    <a href="#">Máy cũ</a>
+                    <a href="#">Thống tin hay</a>
+                    <a href="#">Sim - Thanh toán tiền ích</a>
+                </div>
+            </div>
+        </div>
+        <div class="search-bar">
+            <input type="text" placeholder="Nhập tên điện thoại, máy tính, phụ kiện... để tìm">
+            <button type="submit">🔍</button>
+        </div>
+        <div class="user-cart">
+            <a href="login.html" class="login-icon">Đăng nhập</a>
+            <a href="cart.html" class="cart-icon">Giỏ hàng</a>
+        </div>
+    </div>
+
+    <!-- Breadcrumb (Giữ nguyên) -->
+    <div class="breadcrumb">
+        <a href="index.html">Trang chủ</a> / <span>Đăng nhập</span>
+    </div>
+
+    <!-- Form Đăng nhập (Giữ nguyên) -->
+    <div class="container">
+        <div class="login-form">
+            <h2>Đăng nhập</h2>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="username">Tên đăng nhập:</label>
+                    <input type="text" id="username" name="username" placeholder="Nhập tên đăng nhập" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mật khẩu:</label>
+                    <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required>
+                </div>
+                <button type="submit" class="login-button">Đăng nhập</button>
+                <p>Chưa có tài khoản? <a href="register.html">Đăng ký ngay</a></p>
+            </form>
+            <!-- Nút kiểm tra tài khoản -->
+            <button onclick="checkAccounts()" style="margin-top: 10px; padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Kiểm tra tài khoản</button>
+        </div>
+    </div>
+
+    <!-- Footer (Chỉnh sửa với logo) -->
+    <div class="footer">
+        <p>Liên hệ: 1800-6601 | Email: support@haianhshop.vn</p>
+        <div class="social-links">
+            <a href="https://zalo.me" target="_blank" class="social-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/124/124034.png" alt="Zalo" class="social-logo">
+            </a>
+            <a href="https://facebook.com" target="_blank" class="social-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="Facebook" class="social-logo">
+            </a>
+            <a href="https://instagram.com" target="_blank" class="social-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/124/124021.png" alt="Instagram" class="social-logo">
+            </a>
+            <a href="https://twitter.com" target="_blank" class="social-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/124/124021.png" alt="Twitter" class="social-logo">
+            </a>
+        </div>
+    </div>
+</body>
+</html>

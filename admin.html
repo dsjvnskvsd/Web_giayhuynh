@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Admin - HaiAnh Shop</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Kiểm tra quyền truy cập admin
+        document.addEventListener("DOMContentLoaded", function() {
+            const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+            if (!currentUser || currentUser.role !== "admin") {
+                alert("Bạn không có quyền truy cập trang này!");
+                window.location.href = "login.html";
+            }
+        });
+
+        // Danh sách sản phẩm (lấy từ index.html và lưu vào localStorage nếu chưa có)
+        function initializeProducts() {
+            let products = JSON.parse(localStorage.getItem("products"));
+            if (!products) {
+                products = [
+                    { id: 1, name: "Laptop Asus VivoBook 15 OLED", price: 13790000, oldPrice: 16490000, image: "img/asus-asus-vivobook-15-oled-a1505za-i5-ma415w-170225-110146-231-600x600.jpg", tags: ["exclusive", "warranty"] },
+                    { id: 2, name: "Laptop Asus VivoBook S14", price: 13790000, oldPrice: 16490000, image: "img/asus-vivobook-s-14-oled-s5406ma-ultra-5-pp136w-2-750x500.jpg", tags: ["warranty"] },
+                    { id: 3, name: "Macbook Pro 13 inch 2020", price: 12290000, oldPrice: 14990000, image: "img/macbook13inch.webp", tags: ["warranty"] },
+                    { id: 4, name: "Macbook Air M1 2020", price: 12290000, oldPrice: 14990000, image: "img/macairM1.webp", tags: ["warranty"] },
+                    { id: 5, name: "Laptop Asus ZenBook 14", price: 18990000, oldPrice: 22990000, image: "img/asus-vivobook-s-14-oled-s5406ma-ultra-5-pp136w-2-750x500.jpg", tags: ["exclusive", "warranty"] },
+                    { id: 6, name: "Laptop Asus TUF Gaming A15", price: 25990000, oldPrice: 29990000, image: "img/asus-tuf-hinh 2.png", tags: ["warranty"] },
+                    { id: 7, name: "Laptop Asus ROG Strix G15", price: 32490000, oldPrice: 36990000, image: "img/asus-rog-strix-gaming hinh1.jpg", tags: ["warranty"] },
+                    { id: 8, name: "Laptop Asus VivoBook Pro 14", price: 19790000, oldPrice: 23990000, image: "img/product8-1.jpg", tags: ["exclusive"] },
+                    { id: 9, name: "Laptop Asus ZenBook Flip 13", price: 22990000, oldPrice: 26990000, image: "img/product9-1.png", tags: ["warranty"] },
+                    { id: 10, name: "Laptop Asus TUF Dash F15", price: 27490000, oldPrice: 31990000, image: "img/product10-1.jpg", tags: ["warranty"] },
+                    { id: 11, name: "Laptop Asus ROG Zephyrus G14", price: 35990000, oldPrice: 40990000, image: "img/product11-1.jpg", tags: ["exclusive"] },
+                    { id: 12, name: "Laptop Asus ExpertBook B9", price: 21490000, oldPrice: 25990000, image: "img/product12-1.jpg", tags: ["warranty"] },
+                    { id: 13, name: "MacBook Air M2", price: 27990000, oldPrice: 32990000, image: "img/product13-1.jpg", tags: ["exclusive", "warranty"] },
+                    { id: 14, name: "HP Pavilion Aero 13", price: 19490000, oldPrice: 22990000, image: "img/product14-1.jpg", tags: ["warranty"] },
+                    { id: 15, name: "Lenovo IdeaPad 5", price: 14990000, oldPrice: 17490000, image: "img/product15-1.jpg", tags: ["warranty"] },
+                    { id: 16, name: "Acer Aspire 7", price: 16990000, oldPrice: 19990000, image: "img/product16-1.jpg", tags: ["warranty"] },
+                    { id: 17, name: "MSI Katana 15", price: 29990000, oldPrice: 34990000, image: "img/product17-1.jpg", tags: ["exclusive"] },
+                    { id: 18, name: "Dell XPS 13", price: 31490000, oldPrice: 36990000, image: "img/product18-1.webp", tags: ["warranty"] },
+                    { id: 19, name: "Gigabyte Aero 16", price: 39990000, oldPrice: 45990000, image: "img/product19-1.webp", tags: ["warranty"] },
+                    { id: 20, name: "Huawei MateBook 14", price: 21990000, oldPrice: 25990000, image: "img/product20-1.jpg", tags: ["exclusive"] },
+                    { id: 21, name: "Masstel E140", price: 7990000, oldPrice: 9990000, image: "img/product21-1.jpg", tags: ["warranty"] },
+                    { id: 22, name: "Vaio FE14", price: 15990000, oldPrice: 18990000, image: "img/product22-1.jpg", tags: ["warranty"] }
+                ];
+                localStorage.setItem("products", JSON.stringify(products));
+            }
+            displayProducts();
+        }
+
+        // Hiển thị danh sách sản phẩm
+        function displayProducts() {
+            const products = JSON.parse(localStorage.getItem("products")) || [];
+            const productList = document.getElementById("product-list");
+            productList.innerHTML = "";
+            products.forEach(product => {
+                const productRow = document.createElement("tr");
+                productRow.innerHTML = `
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>${product.price.toLocaleString()}đ</td>
+                    <td><img src="${product.image}" alt="${product.name}" style="width: 50px; height: 50px;"></td>
+                    <td>
+                        <button onclick="editProduct(${product.id})">Sửa</button>
+                        <button onclick="deleteProduct(${product.id})">Xóa</button>
+                    </td>
+                `;
+                productList.appendChild(productRow);
+            });
+        }
+
+        // Thêm hoặc sửa sản phẩm
+        function saveProduct(event) {
+            event.preventDefault();
+            const productId = document.getElementById("product-id").value;
+            const productName = document.getElementById("product-name").value;
+            const productPrice = parseInt(document.getElementById("product-price").value);
+            const productOldPrice = parseInt(document.getElementById("product-old-price").value);
+            const productImage = document.getElementById("product-image").value;
+            const productTags = [];
+            if (document.getElementById("tag-exclusive").checked) productTags.push("exclusive");
+            if (document.getElementById("tag-warranty").checked) productTags.push("warranty");
+
+            let products = JSON.parse(localStorage.getItem("products")) || [];
+            if (productId) {
+                // Sửa sản phẩm
+                products = products.map(product =>
+                    product.id == productId ? { id: parseInt(productId), name: productName, price: productPrice, oldPrice: productOldPrice, image: productImage, tags: productTags } : product
+                );
+            } else {
+                // Thêm sản phẩm mới
+                const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+                products.push({ id: newId, name: productName, price: productPrice, oldPrice: productOldPrice, image: productImage, tags: productTags });
+            }
+            localStorage.setItem("products", JSON.stringify(products));
+            displayProducts();
+            document.getElementById("product-form").reset();
+            document.getElementById("product-id").value = "";
+        }
+
+        // Sửa sản phẩm
+        function editProduct(id) {
+            const products = JSON.parse(localStorage.getItem("products"));
+            const product = products.find(p => p.id === id);
+            document.getElementById("product-id").value = product.id;
+            document.getElementById("product-name").value = product.name;
+            document.getElementById("product-price").value = product.price;
+            document.getElementById("product-old-price").value = product.oldPrice;
+            document.getElementById("product-image").value = product.image;
+            document.getElementById("tag-exclusive").checked = product.tags.includes("exclusive");
+            document.getElementById("tag-warranty").checked = product.tags.includes("warranty");
+        }
+
+        // Xóa sản phẩm
+        function deleteProduct(id) {
+            if (confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
+                let products = JSON.parse(localStorage.getItem("products"));
+                products = products.filter(p => p.id !== id);
+                localStorage.setItem("products", JSON.stringify(products));
+                displayProducts();
+            }
+        }
+
+        // Hiển thị danh sách tài khoản khách hàng
+        function displayUsers() {
+            const users = JSON.parse(localStorage.getItem("users")) || [];
+            const customerList = document.getElementById("customer-list");
+            customerList.innerHTML = "";
+            users.filter(user => user.role === "customer").forEach(user => {
+                const userRow = document.createElement("tr");
+                userRow.innerHTML = `
+                    <td>${user.username}</td>
+                    <td>${user.password}</td>
+                    <td><button onclick="deleteUser('${user.username}')">Xóa</button></td>
+                `;
+                customerList.appendChild(userRow);
+            });
+        }
+
+        // Xóa tài khoản khách hàng
+        function deleteUser(username) {
+            if (confirm("Bạn có chắc chắn muốn xóa tài khoản này?")) {
+                let users = JSON.parse(localStorage.getItem("users"));
+                users = users.filter(user => user.username !== username);
+                localStorage.setItem("users", JSON.stringify(users));
+                displayUsers();
+            }
+        }
+
+        // Hiển thị danh sách đơn hàng
+        function displayOrders() {
+            const orders = JSON.parse(localStorage.getItem("orders")) || [];
+            const orderList = document.getElementById("order-list");
+            orderList.innerHTML = "";
+            orders.forEach(order => {
+                const orderRow = document.createElement("tr");
+                orderRow.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.customer}</td>
+                    <td>${order.product}</td>
+                    <td>${order.price.toLocaleString()}đ</td>
+                    <td>${order.status}</td>
+                    <td><button onclick="deleteOrder(${order.id})">Xóa</button></td>
+                `;
+                orderList.appendChild(orderRow);
+            });
+        }
+
+        // Xóa đơn hàng
+        function deleteOrder(id) {
+            if (confirm("Bạn có chắc chắn muốn xóa đơn hàng này?")) {
+                let orders = JSON.parse(localStorage.getItem("orders"));
+                orders = orders.filter(order => order.id !== id);
+                localStorage.setItem("orders", JSON.stringify(orders));
+                displayOrders();
+            }
+        }
+
+        // Đăng xuất
+        function logout() {
+            localStorage.removeItem("currentUser");
+            window.location.href = "login.html";
+        }
+    </script>
+</head>
+<body onload="initializeProducts(); displayUsers(); displayOrders();">
+    <!-- Header (Giữ nguyên) -->
+    <div class="header">
+        <div class="logo"><a href="index.html">HaiAnh Shop</a></div>
+        <div class="nav-menu">
+            <div class="dropdown">
+                <a href="#" class="dropdown-button">Danh mục</a>
+                <div class="dropdown-content">
+                    <a href="#">Điện thoại</a>
+                    <a href="index.html">Laptop</a>
+                    <a href="#">Điện máy</a>
+                    <a href="#">Phụ kiện</a>
+                    <a href="#">Chuyên trang Apple</a>
+                    <a href="#">Chuyên trang Samsung</a>
+                    <a href="#">Chuyên trang Xiaomi</a>
+                    <a href="#">Tivi, Tủ lạnh, Máy lạnh - Điện hộ</a>
+                    <a href="#">Máy giặt, Máy sấy, Tủ sấy</a>
+                    <a href="#">PC, Máy in, Đồng hồ, Máy tính bảng</a>
+                    <a href="#">Quạt, Quạt điều hòa, Máy lọc không khí</a>
+                    <a href="#">Robot hút bụi, Máy hút bụi, Máy lọc Khí</a>
+                    <a href="#">Máy cũ</a>
+                    <a href="#">Thống tin hay</a>
+                    <a href="#">Sim - Thanh toán tiền ích</a>
+                </div>
+            </div>
+        </div>
+        <div class="search-bar">
+            <input type="text" placeholder="Nhập tên điện thoại, máy tính, phụ kiện... để tìm">
+            <button type="submit">🔍</button>
+        </div>
+        <div class="user-cart">
+            <button onclick="logout()" class="logout-button">Đăng xuất</button>
+        </div>
+    </div>
+
+    <!-- Breadcrumb (Giữ nguyên) -->
+    <div class="breadcrumb">
+        <a href="index.html">Trang chủ</a> / <span>Quản lý Admin</span>
+    </div>
+
+    <!-- Container chính (Giữ nguyên) -->
+    <div class="container admin-container">
+        <h2>Quản lý Admin</h2>
+
+        <!-- Quản lý sản phẩm -->
+        <div class="admin-section">
+            <h3>Quản lý sản phẩm</h3>
+            <form id="product-form" onsubmit="saveProduct(event)">
+                <input type="hidden" id="product-id">
+                <div class="form-group">
+                    <label for="product-name">Tên sản phẩm:</label>
+                    <input type="text" id="product-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-price">Giá:</label>
+                    <input type="number" id="product-price" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-old-price">Giá cũ:</label>
+                    <input type="number" id="product-old-price" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-image">Link hình ảnh:</label>
+                    <input type="text" id="product-image" required>
+                </div>
+                <div class="form-group">
+                    <label>Nhãn:</label>
+                    <label><input type="checkbox" id="tag-exclusive"> Độc quyền</label>
+                    <label><input type="checkbox" id="tag-warranty"> Bảo hành 2 năm</label>
+                </div>
+                <button type="submit">Lưu sản phẩm</button>
+            </form>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Giá</th>
+                        <th>Hình ảnh</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="product-list"></tbody>
+            </table>
+        </div>
+
+        <!-- Quản lý tài khoản khách hàng -->
+        <div class="admin-section">
+            <h3>Quản lý tài khoản khách hàng</h3>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Tên đăng nhập</th>
+                        <th>Mật khẩu</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="customer-list"></tbody>
+            </table>
+        </div>
+
+        <!-- Quản lý đơn hàng -->
+        <div class="admin-section">
+            <h3>Quản lý đơn hàng</h3>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Khách hàng</th>
+                        <th>Sản phẩm</th>
+                        <th>Giá</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="order-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footer (Chỉnh sửa với logo) -->
+    <div class="footer">
+        <p>Liên hệ: 1800-6601 | Email: support@haianhshop.vn</p>
+        <div class="social-links">
+            <a href="https://zalo.me" target="_blank" class="social-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/124/124034.png" alt="Zalo" class="social-logo">
+            </a>
+            <a href="https://facebook.com" target="_blank" class="social-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="Facebook" class="social-logo">
+            </a>
+            <a href="https://instagram.com" target="_blank" class="social-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/124/124021.png" alt="Instagram" class="social-logo">
+            </a>
+            <a href="https://twitter.com" target="_blank" class="social-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/124/124021.png" alt="Twitter" class="social-logo">
+            </a>
+        </div>
+    </div>
+</body>
+</html>
